@@ -1,0 +1,1 @@
+cmd_/home/chenlvqing/Downloads/uboot移植__裁剪/myDrivers/demo/demo.ko := ld -r -m elf_x86_64  -z max-page-size=0x200000 -T ./scripts/module-common.lds --build-id  -o /home/chenlvqing/Downloads/uboot移植__裁剪/myDrivers/demo/demo.ko /home/chenlvqing/Downloads/uboot移植__裁剪/myDrivers/demo/demo.o /home/chenlvqing/Downloads/uboot移植__裁剪/myDrivers/demo/demo.mod.o ;  true

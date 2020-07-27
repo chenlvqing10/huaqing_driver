@@ -1,0 +1,1 @@
+cmd_/home/chenlvqing/Downloads/uboot移植__裁剪/myDrivers/export/demoB/demoB.mod := { echo  /home/chenlvqing/Downloads/uboot移植__裁剪/myDrivers/export/demoB/demoB.o; echo; } > /home/chenlvqing/Downloads/uboot移植__裁剪/myDrivers/export/demoB/demoB.mod
