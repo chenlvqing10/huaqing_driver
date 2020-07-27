@@ -14,6 +14,6 @@
 #define ACCESS_DATA_W  _IOW('a',0,int)
 
 //read and write string data
-#define ACCESS_STRING_R   _IOR('a',0,char[100])
-#define ACCESS_STRING_W   _IOW('a',0,char[100])
+#define ACCESS_STRING_R _IOR('a',0,char[100])
+#define ACCESS_STRING_W _IOR('a',0,char[100])
 #endif

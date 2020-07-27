@@ -1,8 +1,19 @@
 #include "myled.h"
 
+
 int myled_open(struct inode *__node, struct file *__fd)
 {
 	printk("%s::%s::%d\n",__FILE__,__FUNCTION__,__LINE__);
+
+	//提取设备号
+	//major = imajor(__node);
+	//minor = iminor(__node);
+
+	printk("major:%d  minor:%d\n",imajor(__node),iminor(__node));
+
+	//通过file结构体得到一些信息
+	printk("111:%d   222:%d\n",imajor(__fd->f_mapping->host),iminor(__fd->f_mapping->host));
+
 	return 0;
 }
 
@@ -102,7 +113,47 @@ ssize_t myled_write(struct file * __fd, const char __user * ubuf, size_t size, l
 	printk("kbuf =%s\n",kbuf);
 
 	//通过输入的命令进行led灯的操作
-	myled_setlamp(kbuf);
+	//myled_setlamp(kbuf);
+	minor = iminor(__fd->f_mapping->host);
+	if(minor == MINOR_RED_LED)
+	{
+		if(kbuf[0] == '1')
+		{
+			printk("I will put red led on\n");
+			*(v_GPIOA + OUT) |=  (0x1 << 28);
+		}
+		else
+		{
+			printk("I will put red led off\n");
+			*(v_GPIOA + OUT) &= ~(0x1 << 28);
+		}
+	}
+	else if(minor == MINOR_GREEN_LED)
+	{
+		if(kbuf[0] == '1')
+		{
+			printk("I will put green led\n");
+			*(v_GPIOE + OUT) |=  (0x1 << 13);
+		}
+		else
+		{
+			printk("I will put green led off\n");
+		    *(v_GPIOE + OUT) &= ~(0x1 << 13);
+		}
+	}
+	else if(minor == MINOR_BLUE_LED)
+	{
+		if(kbuf[0]=='1')
+		{
+			printk("I eill put blue led\n");
+			*(v_GPIOB + OUT) |=  (0x1 << 12);
+		}
+		else
+		{
+			printk("I will put blue led off\n");
+			*(v_GPIOB + OUT) &= ~(0x1 << 12);  
+		}
+	}
 
 	return size;
 }
@@ -111,6 +162,7 @@ ssize_t myled_write(struct file * __fd, const char __user * ubuf, size_t size, l
 long myled_ioctl(struct file *file, unsigned int cmd, unsigned long args)
 {
 	int data = 111;
+	char string_Buf[100] = "transfer data from kernel to user";
 	int ret;
 
 	switch(cmd){
@@ -148,10 +200,27 @@ long myled_ioctl(struct file *file, unsigned int cmd, unsigned long args)
 				return -EINVAL;
 			}
 			break;
+		case ACCESS_STRING_R://from kernel to user (string type)
+			ret = copy_to_user((void*)args,string_Buf,STRING_SIZE_R);
+			if(ret)
+			{
+				printk("copy string from kernel to user error!!!\n");
+				return -EINVAL;
+			}
+			break;
+		case ACCESS_STRING_W://from user to kernel(string type)
+			ret = copy_from_user(string_Buf,(void*)args,STRING_SIZE_W);
+			if(ret)
+			{
+				printk("copy string from user to kernel error!!!\n");
+				return -EINVAL;
+			}
+			printk("from user string data:%s\n",string_Buf);
+			break;
 		default:
 			break;
 	}
-	
+
 	return 0;
 }
 
@@ -192,6 +261,32 @@ static int __init demo_init(void)
 			return -ENOMEM;
 		}
 	}
+	
+	//4.创建设备节点
+	cls = class_create(THIS_MODULE,"clq_class");
+	if(IS_ERR(cls)){
+		printk("class create error\n");
+		return PTR_ERR(cls);
+	}
+	//MKDEV(ma,mi) //通过主设备和次设备号合成设备号
+	//create three device to 3 led
+	dev_red =  device_create(cls,NULL,MKDEV(major,MINOR_RED_LED),NULL,"myled_red");
+	if(IS_ERR(dev_red)){
+		printk("class device red led error\n");
+		return PTR_ERR(dev_red);
+	}
+
+	dev_green =  device_create(cls,NULL,MKDEV(major,MINOR_GREEN_LED),NULL,"myled_green");
+	if(IS_ERR(dev_green)){
+		printk("class device green led error\n");
+		return PTR_ERR(dev_green);
+	}
+
+	dev_blue =  device_create(cls,NULL,MKDEV(major,MINOR_BLUE_LED),NULL,"myled_blue");
+	if(IS_ERR(dev_blue)){
+		printk("class device blue led error\n");
+		return PTR_ERR(dev_blue);
+	}
 
 	return 0;
 }
@@ -203,6 +298,13 @@ module_init(demo_init);
 static void __exit demo_exit(void)
 {
 	printk("myled exit\n");
+	
+	//1.注销设备节点
+	device_destroy(cls,MKDEV(major,MINOR_RED_LED));
+	device_destroy(cls,MKDEV(major,MINOR_GREEN_LED));
+	device_destroy(cls,MKDEV(major,MINOR_BLUE_LED));
+	class_destroy(cls);
+	
 	//取消地址映射
 	iounmap(v_GPIOA);
 	iounmap(v_GPIOB);

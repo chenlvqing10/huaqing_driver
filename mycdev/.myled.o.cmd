@@ -431,6 +431,22 @@ deps_/home/chenlvqing/Downloads/uboot移植__裁剪/myDrivers/mycdev/myled.o := 
     $(wildcard include/config/generic/pci/iomap.h) \
   arch/arm/mach-s5p6818/include/mach/io.h \
   /home/chenlvqing/Downloads/uboot移植__裁剪/myDrivers/mycdev/cmd.h \
+  include/linux/device.h \
+    $(wildcard include/config/debug/devres.h) \
+    $(wildcard include/config/devtmpfs.h) \
+    $(wildcard include/config/sysfs/deprecated.h) \
+  include/linux/ioport.h \
+  include/linux/klist.h \
+  include/linux/pm.h \
+    $(wildcard include/config/pm.h) \
+    $(wildcard include/config/pm/runtime.h) \
+    $(wildcard include/config/pm/clk.h) \
+    $(wildcard include/config/pm/generic/domains.h) \
+  /home/chenlvqing/Downloads/uboot移植__裁剪/kernel-3.4.39/arch/arm/include/asm/device.h \
+    $(wildcard include/config/dmabounce.h) \
+    $(wildcard include/config/iommu/api.h) \
+    $(wildcard include/config/arch/omap.h) \
+  include/linux/pm_wakeup.h \
 
 /home/chenlvqing/Downloads/uboot移植__裁剪/myDrivers/mycdev/myled.o: $(deps_/home/chenlvqing/Downloads/uboot移植__裁剪/myDrivers/mycdev/myled.o)
 
