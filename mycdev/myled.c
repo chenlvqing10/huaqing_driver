@@ -239,6 +239,8 @@ static struct file_operations fops =
 //入口  进入驱动模块  __init 将入口函数放到__section(.init.text)
 static int __init demo_init(void)
 {
+	int i=0;
+
 	printk("myled init\n");
 
 	//注册字符驱动设备
@@ -269,7 +271,19 @@ static int __init demo_init(void)
 		return PTR_ERR(cls);
 	}
 	//MKDEV(ma,mi) //通过主设备和次设备号合成设备号
-	//create three device to 3 led
+	//create three device inode to 3 led
+	//for循环的写法
+	for(i=0;i<3;i++)
+	{
+		dev = device_create(cls,NULL,MKDEV(major,i),NULL,"myled%d",i);
+		if(IS_ERR(dev))
+		{
+			printk("create device error\n");
+			return PTR_ERR(dev);
+		}
+	}
+
+/*	
 	dev_red =  device_create(cls,NULL,MKDEV(major,MINOR_RED_LED),NULL,"myled_red");
 	if(IS_ERR(dev_red)){
 		printk("class device red led error\n");
@@ -287,7 +301,7 @@ static int __init demo_init(void)
 		printk("class device blue led error\n");
 		return PTR_ERR(dev_blue);
 	}
-
+*/
 	return 0;
 }
 //module_init:内核中的一个宏   将函数的名字告诉内核，以供内核回调
@@ -297,12 +311,19 @@ module_init(demo_init);
 //出口  退出驱动模块 __exit 讲出口函数放到  __section(.exit.text)
 static void __exit demo_exit(void)
 {
+	int i=0;
 	printk("myled exit\n");
-	
 	//1.注销设备节点
+	//for
+	for(i=0;i<3;i++)
+	{
+		device_destroy(cls,MKDEV(major,i));
+	}
+	/*
 	device_destroy(cls,MKDEV(major,MINOR_RED_LED));
 	device_destroy(cls,MKDEV(major,MINOR_GREEN_LED));
 	device_destroy(cls,MKDEV(major,MINOR_BLUE_LED));
+	*/
 	class_destroy(cls);
 	
 	//取消地址映射

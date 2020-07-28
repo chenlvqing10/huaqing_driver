@@ -25,10 +25,11 @@ int major = 0;              //主设备号
 int minor = 0;              //次设备号
 char kbuf[128]={0};         //内核空间
 
-struct class *cls = NULL;//目录名
-struct device *dev_red = NULL;//红色LED灯设备节点
-struct device *dev_green = NULL;//绿色LED灯设备节点
-struct device *dev_blue = NULL;//蓝色LED灯设备节点
+struct class *cls			= NULL;//目录名
+struct device *dev			=NULL;
+struct device *dev_red		= NULL;//红色LED灯设备节点
+struct device *dev_green	= NULL;//绿色LED灯设备节点
+struct device *dev_blue		= NULL;//蓝色LED灯设备节点
 
 //命令设置
 #define RED    '0'

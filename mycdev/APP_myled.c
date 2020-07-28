@@ -37,9 +37,9 @@ int main(int argc, const char *argv[])
 {
 
 	int fd_red,fd_green,fd_blue;
-	fd_red    = open("/dev/myled_red",O_RDWR);
-	fd_green  = open("/dev/myled_green",O_RDWR);
-	fd_blue   = open("/dev/myled_blue",O_RDWR);
+	fd_red    = open("/dev/myled0",O_RDWR);
+	fd_green  = open("/dev/myled1",O_RDWR);
+	fd_blue   = open("/dev/myled2",O_RDWR);
 
 	if((fd_red==-1) || (fd_green==-1) || (fd_blue==-1))
 	{
