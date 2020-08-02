@@ -31,6 +31,7 @@ int myadc_close(struct inode *__node, struct file *__fd)
 ssize_t myadc_read(struct file *file, char __user *ubuf,size_t size, loff_t *offs)
 {
 	int ret;
+	/*
 	int digital_value = 0;//数字量
 	int anolog_value  = 0;//模拟量
 
@@ -55,6 +56,7 @@ ssize_t myadc_read(struct file *file, char __user *ubuf,size_t size, loff_t *off
 
 	sprintf(kbuf,"%d",anolog_value);//整型数转字符串
 
+*/
 	if(size > sizeof(kbuf)) 
 		size = sizeof(kbuf);
 	ret = copy_to_user(ubuf,kbuf,size);

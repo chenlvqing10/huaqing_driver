@@ -7,7 +7,7 @@ int myadc_open(struct inode *__node, struct file *__fd)
 	if(flags == 1)
 	{
 		spin_unlock(&lock);//解锁
-		return -EBUSY;
+	//	return -EBUSY;
 	}
 	printk("spin lock success\n");
 
@@ -31,30 +31,27 @@ int myadc_close(struct inode *__node, struct file *__fd)
 ssize_t myadc_read(struct file *file, char __user *ubuf,size_t size, loff_t *offs)
 {
 	int ret;
-	int digital_value = 0;//数字量
-	int anolog_value  = 0;//模拟量
+	condition = 0;
+	printk("call the read function\n");
+	//判断用户打开的方式
+	if(file->f_flags & O_NONBLOCK) //如果是非阻塞模型 返回错误
+	{
+		printk("call the read function\n");
+		return -EINVAL;
+	}
+	else//阻塞模型
+	{
+		printk("11111111111111111111111111111111111111111111111111111111111111111111111111111call the read function\n");
+		ret = wait_event_interruptible(wq,condition);//进入休眠状态
+		printk("1111111111111111111111111111111111111111111111111111111111111111111111111call the read function\n");
+		if(ret)
+		{
+			printk("wait error\n");
+			return ret;
+		}
+	}
 
-	printk("%s:%s:%d\n",__FILE__,__func__,__LINE__);
-
-	//开启ADC转换  ADCCON[0]
-	*(v_ADC_BASE + ADCCON) |= 0x1;
-
-	//等待ADC转换结果  ADCCON[0]
-	while((*(v_ADC_BASE + ADCCON) & 0x1));    //等待低电平  转换完成
-
-	// 读取转换的数字量  ADCDAT[11:0]
-	*(v_ADC_BASE + ADCDAT) &= 0xFFF;
-
-	digital_value = *(v_ADC_BASE + ADCDAT);
-	printk("ADCDAT =%d\n",digital_value);
-
-	//将数字量转换为模拟量进行输出
-	anolog_value = (int)(2 * digital_value * ((float)1800 / 4096));//1.8v  12位
-
-	printk("转换后的ADC电压值 = %d\n",anolog_value);
-
-	sprintf(kbuf,"%d",anolog_value);//整型数转字符串
-
+	//等待被唤醒,讲从硬件中得到的数据通过内核发送给用户层
 	if(size > sizeof(kbuf)) 
 		size = sizeof(kbuf);
 	ret = copy_to_user(ubuf,kbuf,size);
@@ -63,6 +60,7 @@ ssize_t myadc_read(struct file *file, char __user *ubuf,size_t size, loff_t *off
 		printk("copy data to user error");
 		return -EIO ; //input/output error
 	}
+	condition  = 0; //将条件设置为假	
 	return size;
 }
 
@@ -80,6 +78,10 @@ ssize_t myadc_write(struct file *file,const char __user *ubuf,size_t size, loff_
 	}
 	printk("kbuf = %s\n",kbuf);
 
+	//当用户层发送过来数据的时候 唤醒休眠进程  模拟中断
+	condition = 1;//休眠条件不满足
+	wake_up_interruptible(&wq);
+
 	return size;
 }
 
@@ -96,7 +98,7 @@ long myadc_ioctl(struct file *file, unsigned int cmd, unsigned long args)
 int myadc_kernel_hw_init(void)//LED内核与硬件交互的初始化                      
 {                                                                              
 	int ret = 0;
-	
+
 
 	v_ADC_BASE  = ioremap(ADC_BASE,20);//20---5个寄存器地址                         
 	v_IP_RESET1 = ioremap(IP_RESET1,4);//4----实际寄存器地址

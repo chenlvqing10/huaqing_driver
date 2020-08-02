@@ -14,15 +14,16 @@ char ubuf[128] = "aaaaaaa"; //传递字符
 
 int main(int argc, const char *argv[])
 {
-	int fd = open("/dev/myadc",O_RDWR);
+	printf("111111111111111111\n");
+	int fd = open("/dev/farsight_adc_irq0",O_RDWR);
+	printf("111111111111111111\n");
 	if(fd==-1)
 	{
 	
-		perror("open adc device");
+		perror("open farsight_adc_irq device");
 		return -1;
 	}
 
-	sleep(5);
 	while(1)
 	{
 		//read from kernel

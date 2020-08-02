@@ -22,7 +22,8 @@ int main(int argc, const char *argv[])
 		return -1;
 	}
 
-	sleep(5);
+	sleep(20);
+/*
 	while(1)
 	{
 		//read from kernel
@@ -31,5 +32,8 @@ int main(int argc, const char *argv[])
 		sleep(2);
 	}
 	return 0;
+	*/
+
+	close(fd);
 }
 

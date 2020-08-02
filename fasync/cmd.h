@@ -1,0 +1,19 @@
+#ifndef __CMD_H__
+#define __CMD_H__
+
+//32位IO控制编码
+#define RED_ON		 _IO('a',0)
+#define RED_OFF		 _IO('a',1)
+#define GREEN_ON	 _IO('b',0)
+#define GREEN_OFF	 _IO('b',1)
+#define BLUE_ON		 _IO('c',0)
+#define BLUE_OFF	 _IO('c',1)
+
+//read and write int data
+#define ACCESS_DATA_R  _IOR('a',0,int) 
+#define ACCESS_DATA_W  _IOW('a',0,int)
+
+//read and write string data
+#define ACCESS_STRING_R   _IOR('a',0,char[100])
+#define ACCESS_STRING_W   _IOW('a',0,char[100])
+#endif

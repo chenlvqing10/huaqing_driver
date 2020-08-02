@@ -18,6 +18,9 @@
 #include <linux/semaphore.h>
 #include <linux/mutex.h>
 #include <linux/atomic.h>
+#include <linux/sched.h>
+#include <linux/wait.h>
+#include <linux/poll.h>
 
 //自旋锁机制
 spinlock_t lock;
@@ -29,6 +32,12 @@ struct mutex mutexlock;
 atomic_t atm = ATOMIC_INIT(-1);
 //
 int flags = 0;
+
+//IO模型
+//阻塞模型
+int condition = 0; //休眠条件  0--休眠状态
+wait_queue_head_t wq; //定义等待队列头
+DECLARE_WAIT_QUEUE_HEAD(wq);//初始化队列头
 
 #define  MYCDEVNAME  "myadc"
 typedef unsigned int  _uint32_t;   

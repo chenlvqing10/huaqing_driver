@@ -2,18 +2,15 @@
 
 int myadc_open(struct inode *__node, struct file *__fd)
 {
-	spin_lock(&lock);//上锁
-	//临界区
-	if(flags == 1)
+	//尝试上锁
+	if(mutex_trylock(&mutexlock))
 	{
-		spin_unlock(&lock);//解锁
+		printk("try lock error by mutex\n");
 		return -EBUSY;
 	}
-	printk("spin lock success\n");
+	printk("mutex lock success\n");
 
-	flags = 1;//当第一个进程上锁之后会在临界区将该标志位设置成1，是的第二个进程进来后，会返回资源繁忙
 	printk("%s::%s::%d\n",__FILE__,__FUNCTION__,__LINE__); 
-	spin_unlock(&lock);//解锁
 
 	return 0;                                                                                 
 }                                                                                             
@@ -21,9 +18,10 @@ int myadc_open(struct inode *__node, struct file *__fd)
 int myadc_close(struct inode *__node, struct file *__fd)                                      
 {                                                                                             
 	printk("%s::%s::%d\n",__FILE__,__FUNCTION__,__LINE__);        
-	spin_lock(&lock);
-	flags = 0;
-	spin_unlock(&lock);
+
+	//解锁
+	mutex_unlock(&mutexlock);
+
 	return 0;                                                                                 
 }   
 
@@ -31,6 +29,7 @@ int myadc_close(struct inode *__node, struct file *__fd)
 ssize_t myadc_read(struct file *file, char __user *ubuf,size_t size, loff_t *offs)
 {
 	int ret;
+	/*
 	int digital_value = 0;//数字量
 	int anolog_value  = 0;//模拟量
 
@@ -55,6 +54,7 @@ ssize_t myadc_read(struct file *file, char __user *ubuf,size_t size, loff_t *off
 
 	sprintf(kbuf,"%d",anolog_value);//整型数转字符串
 
+*/
 	if(size > sizeof(kbuf)) 
 		size = sizeof(kbuf);
 	ret = copy_to_user(ubuf,kbuf,size);
