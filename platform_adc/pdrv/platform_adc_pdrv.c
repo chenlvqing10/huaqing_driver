@@ -6,7 +6,6 @@
 #include <linux/uaccess.h>
 #include <linux/io.h>
 #include <linux/string.h>
-#include "cmd.h"
 #include <linux/device.h>
 #include <linux/slab.h>
 #include <linux/spinlock_types.h>
@@ -19,6 +18,11 @@
 #include <linux/gpio.h>
 #include <linux/clkdev.h>
 #include <linux/clk.h>
+#include <linux/platform_device.h>
+
+struct resource *res;//get resource object
+unsigned int type[] = {IORESOURCE_MEM,IORESOURCE_IRQ};//get resource type
+int irqno;
 
 //driver name
 #define MYDRIVERNAME "farsight_adc_irq"
@@ -89,10 +93,7 @@ static unsigned int adc_init(void)
 
 	}
 	return 0;
-}
-
-
-static int Farsight_adc_open(struct inode *node, struct file *file)
+}static int Farsight_adc_open(struct inode *node, struct file *file)
 {
 	printk("<0>" "%s::%s::%d\n",__FILE__,__FUNCTION__,__LINE__);
 	return 0;
@@ -161,8 +162,6 @@ static struct file_operations fops = {
 	.read    = Farsight_adc_read,
 	.release = Farsight_adc_close,
 };
-
-
 //irq handler function
 static irqreturn_t handler_farsight_irq_adc(int irqno,void* arg)
 {
@@ -175,11 +174,28 @@ static irqreturn_t handler_farsight_irq_adc(int irqno,void* arg)
 	return IRQ_HANDLED;
 }
 
-//device Enter
-int __init farsight_irq_init(void)
+//create platform_driver struct and init
+int pdrv_probe(struct platform_device *pdev)
 {
 	int ret;
-	dev_t  devno;//device no
+	dev_t devno;
+	printk("%s::%s::%d\n",__FILE__,__func__,__LINE__);
+
+	//get device resource
+	res = platform_get_resource(pdev,type[0],0);
+	if(res == NULL){
+		printk("platform get resource[0] error\n");
+		return -EAGAIN;
+	}
+	//get irq resource
+	irqno = platform_get_irq(pdev,0);
+	if(irqno < 0)
+	{
+		printk("platform get irqno error\n");
+		return irqno;//return errorno
+	}
+	printk("<0>" "addr = %#x,irqno = %d\n",res->start,irqno);
+
 
 	/*create char driver*/
 	//1.define the cdev struct and malloc memory
@@ -281,10 +297,9 @@ ERR_STOP0:
 	return ret;
 }
 
-
-//device exit
-static void __exit farsight_irq_exit(void)
+int pdrv_remove(struct platform_device *pdev)
 {
+	printk("%s::%s::%d\n",__FILE__,__func__,__LINE__);
 	//destroy device node
 	device_destroy(cls,MKDEV(major,minor));
 	class_destroy(cls);
@@ -304,12 +319,36 @@ static void __exit farsight_irq_exit(void)
 	//ADC IRQ DELETE AND POWER OFF
 	*(v_adc_base + ADCCON) |= (0x1 << 2);//1:power off
 	*(v_adc_base + ADCINTCLR) = 0x1;//irq del
-	
+
 	//free irq
 	free_irq(ADC_IRQ_NO,NULL);
+	return 0;
 }
 
-module_init(farsight_irq_init);
-module_exit(farsight_irq_exit);
+struct platform_device_id pdrv_idtable[] = 
+{
+	{"platform_adc",},
+	{"platform_adc01",},
+	{"platform_adc02",},
+	{"platform_adc03",},
+	{"platform_adc04",},
+	{},//end and exit while
+};
+
+struct platform_driver pdrv =
+{
+	.probe   = pdrv_probe,//device and driver match success then exec this fun
+	.remove  = pdrv_remove,//move device and driver then exec this fun
+	.driver  = {
+		.name = "platform_adc",
+	},
+	.id_table = pdrv_idtable,
+};
+
+
+module_platform_driver(pdrv);//enter register unregister exit fun
 MODULE_LICENSE("GPL");
+
+
+
 
